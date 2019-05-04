@@ -1,0 +1,13 @@
+---
+- name: Install sudo
+  apt:
+    name: sudo
+
+- name: Template sudoers file
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers
+    owner: root
+    group: root
+    mode: 0400
+    validate: "/usr/sbin/visudo -cf %s"

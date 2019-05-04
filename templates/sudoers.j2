@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+
+{% macro mkCommandString(cmd) -%}
+{% if 'options' in cmd and cmd.options | length > 0 %}{{ cmd.options | join(': ') }}: {% endif %}{{ cmd.command }}
+{%- endmacro -%}
+
+# Defaults specifications
+{% for default in sudo_defaults %}
+Defaults {{ default }}
+{% endfor %}
+
+# root is allowed to do anything
+root ALL=(ALL:ALL) SETENV: ALL
+
+# User rules
+{% for user,rule in sudo_user_rules.items() %}
+{{ user }} {{ rule.host | default('ALL') }}=({{ rule.runAs | default('ALL:ALL') }}) {% for cmd in rule.commands %}{{ mkCommandString(cmd) }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endfor %}
+
+# Group rules
+{% for group,rule in sudo_group_rules.items() %}
+%{{ group }} {{ rule.host | default('ALL') }}=({{ rule.runAs | default('ALL:ALL') }}) {% for cmd in rule.commands %}{{ mkCommandString(cmd) }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endfor %}
